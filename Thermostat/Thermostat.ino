@@ -1,12 +1,11 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-
-#define THERMO 34
+#include "thermodef.h"
 
 const char* ssid = "NETGEAR_IOT";
 const char* password = "";
 
-const char* host = "https://754d-153-156-28-29.jp.ngrok.io/api/v1/temperature";
+const char* host = "https://6b23-153-156-28-29.jp.ngrok.io/api/v1/temperature";
 
 StaticJsonDocument<JSON_OBJECT_SIZE(4)> json_array;
 
@@ -16,7 +15,7 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid,password);
-
+  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -25,16 +24,18 @@ void setup() {
   Serial.println("");
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());  
-}
 
-double thermoVal2Degree(uint32_t thermoVal,uint8_t bits,float thermoRefVolt,float actRefVolt,uint16_t degRange){
-  return (degRange * thermoVal) / (1<<bits) * (thermoRefVolt/actRefVolt);
+  Serial.println(WiFi.localIP()); 
+  
+  ledcSetup(LEDC_CHANNEL_0,LEDC_BASE_FREQ,LEDC_BASE_BIT);
+  ledcAttachPin(RLED,LEDC_CHANNEL_0);
+  ledcAttachPin(GLED,LEDC_CHANNEL_1);
+  ledcAttachPin(BLED,LEDC_CHANNEL_2); 
 }
 
 void loop() {
   delay(60000);
-    
+
   HTTPClient client;
   if(!client.begin(host)){
     Serial.println("Connection failed");
@@ -62,4 +63,10 @@ void loop() {
     Serial.printf("[POST] Failed to send (URL:%s)\n",host);
     Serial.println(json_string);
   }
+  
+  updateDuty(degree);
+  
+  ledcWrite(LEDC_CHANNEL_0,rDuty);
+  ledcWrite(LEDC_CHANNEL_1,gDuty);
+  ledcWrite(LEDC_CHANNEL_2,bDuty);
 }
