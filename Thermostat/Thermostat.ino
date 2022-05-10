@@ -1,11 +1,10 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include "thermodef.h"
+#include "setting.h"
 
 const char* ssid = "NETGEAR_IOT";
 const char* password = "";
-
-const char* host = "https://6b23-153-156-28-29.jp.ngrok.io/api/v1/temperature";
 
 StaticJsonDocument<JSON_OBJECT_SIZE(4)> json_array;
 
@@ -34,10 +33,8 @@ void setup() {
 }
 
 void loop() {
-  delay(60000);
-
   HTTPClient client;
-  if(!client.begin(host)){
+  if(!client.begin(HOST)){
     Serial.println("Connection failed");
   }
 
@@ -57,10 +54,10 @@ void loop() {
   int status_code = client.POST((uint8_t *)json_string,strlen(json_string));
   //int status_code = client.GET();
   if(status_code==201){
-    Serial.printf("[POST] Send to server (URL:%s)\n",host);
+    Serial.printf("[POST] Send to server (URL:%s)\n",HOST);
     Serial.println(client.getString());
   }else{
-    Serial.printf("[POST] Failed to send (URL:%s)\n",host);
+    Serial.printf("[POST] Failed to send (URL:%s)\n",HOST);
     Serial.println(json_string);
   }
   
@@ -69,4 +66,6 @@ void loop() {
   ledcWrite(LEDC_CHANNEL_0,rDuty);
   ledcWrite(LEDC_CHANNEL_1,gDuty);
   ledcWrite(LEDC_CHANNEL_2,bDuty);
+
+  delay(60000);
 }
